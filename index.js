@@ -21,6 +21,7 @@ async function run() {
     } finally {
         // Ensures that the client will close when you finish/error
         await client.close();
+        console.log("schas is aus mit lustig :)")
     }
 }
 run().catch(console.dir);
@@ -31,7 +32,6 @@ const myColl = myDB.collection("pizzaMenu");
 
 myColl.createIndex({ "name": 1 }, { unique: true })
 
-
 const doc = { name: "Neapolitan pizza", shape: "round" };
 const docs = [
     { name: "Neapolitan pizza", shape: "round" },
@@ -41,19 +41,28 @@ const docs = [
 
 //let result = myColl.insertOne(doc);
 
-
+// CREATE
 try {
     const result = myColl.insertMany(docs);
+    then((res) => { console.log("Inserted multiple documents", res) }
+    )
     console.log(
         `${result.insertedCount} documents were inserted with the _id: ${result.insertedId}`,
     );
 }
 catch (e) {
-    console.error(e);
+    console.log("Error inserting documents");
+    //console.error(e);
 }
 
+// READ
 
-
-
-// Query for a pizza with the name of "Neapolitan pizza"
-const query = { name: "Neapolitan pizza" };
+try {
+    const cursor = myColl.findOne({ shape: "round" })
+        .then((res) => { console.log("Found a document with the shape of a round pizza", res) })
+        .finally(() => client.close());
+    //cursor.forEach(console.dir);
+}
+catch (e) {
+    console.log(e);
+}
