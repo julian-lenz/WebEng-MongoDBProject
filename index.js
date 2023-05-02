@@ -11,58 +11,67 @@ const client = new MongoClient(uri, {
     }
 });
 
-async function run() {
-    try {
-        // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
-        // Send a ping to confirm a successful connection
-        await client.db("").command({ ping: 1 });
-        //console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } finally {
-        // Ensures that the client will close when you finish/error
-        await client.close();
-        console.log("schas is aus mit lustig :)")
-    }
-}
-run().catch(console.dir);
-
-
 const myDB = client.db("myDB");
 const myColl = myDB.collection("pizzaMenu");
 
 myColl.createIndex({ "name": 1 }, { unique: true })
 
-const doc = { name: "Neapolitan pizza", shape: "round" };
 const docs = [
     { name: "Neapolitan pizza", shape: "round" },
     { name: "Chicago pizza", shape: "square" },
     { name: "New York pizza", shape: "triangle" }
 ]
 
-//let result = myColl.insertOne(doc);
-
-// CREATE
-try {
-    const result = myColl.insertMany(docs);
-    then((res) => { console.log("Inserted multiple documents", res) }
-    )
-    console.log(
-        `${result.insertedCount} documents were inserted with the _id: ${result.insertedId}`,
-    );
-}
-catch (e) {
-    console.log("Error inserting documents");
-    //console.error(e);
+async function create() {
+    await myColl.insertMany(docs)
+        .then((res) => { console.log("Inserted multiple documents into the collection") })
+        .catch((err) => { console.log("Error while inserting multiple documents into the collection", err) })
 }
 
-// READ
+async function findRound() {
+    const cursor = await myColl.find({ shape: "round" })
+    if (!cursor) { console.log("No document found"); return; }
+    //console.log("Found a document with the shape of a round pizza:\n", cursor)
+    for await (const doc of cursor) {
+        console.log(doc);
+    }
+}
 
-try {
-    const cursor = myColl.findOne({ shape: "round" })
-        .then((res) => { console.log("Found a document with the shape of a round pizza", res) })
-        .finally(() => client.close());
-    //cursor.forEach(console.dir);
+async function deleteAll() {
+    await myColl.deleteMany({})
+        .then((res) => { console.log(`Deleted ${res.deletedCount} document(s)`) })
 }
-catch (e) {
-    console.log(e);
+
+async function run() {
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
+
+        // CREATE
+        await create();
+
+        // UPDATE
+        await myColl.updateOne(
+            { name: "Chicago pizza" },
+            {
+                $set: { shape: "round" }
+            })
+            .then((res) => { console.log("Updated document") })
+            .catch((err) => { console.log("Error while updating document") })
+
+        // READ
+        await findRound();
+        // DELETE
+        await deleteAll();
+    }
+    finally {
+        // Ensures that the client will close when you finish/error
+        await client.close();
+    }
 }
+
+run().catch(console.dir);
+
+
+
+
