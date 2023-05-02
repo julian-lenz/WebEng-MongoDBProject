@@ -1,4 +1,3 @@
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://jlenzenweger:sicher123@cluster0.f2fiuzr.mongodb.net/?retryWrites=true&w=majority";
 
@@ -71,7 +70,3 @@ async function run() {
 }
 
 run().catch(console.dir);
-
-
-
-
